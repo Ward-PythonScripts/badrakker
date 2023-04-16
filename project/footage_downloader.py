@@ -7,7 +7,6 @@ import tkinter.simpledialog as sd
 
 root = tk.Tk()
 root.withdraw()
-root.minsize(500,500)
 
 url = sd.askstring("Which youtube URL to download?", "url:\t\t\t\t\t\t\t\t\t")
 if url is None:

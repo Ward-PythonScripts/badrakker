@@ -1,12 +1,11 @@
-import pafy
 import cv2
 
-badminton_match = "https://www.youtube.com/watch?v=IKDCak_TsHE&ab_channel=BWFTV"
-video = pafy.new(badminton_match)
-best = video.getbest(preftype="mp4")
+FOOTAGE_PATH = "footage/swiss_md.mp4"
+from tkinter import filedialog
 
-capture = cv2.VideoCapture(best.url)
+
+capture = cv2.VideoCapture(FOOTAGE_PATH)
 while True:
     grabbed, frame = capture.read()
     cv2.imshow("Frame",frame)
-    cv2.waitKey()
+    cv2.waitKey(1000)
