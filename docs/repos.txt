@@ -1,0 +1,3 @@
+video tutorial on object detection repo
+https://github.com/nicknochnack/TFODCourse
+
