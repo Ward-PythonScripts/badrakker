@@ -1,3 +1,6 @@
 video tutorial on object detection repo
 https://github.com/nicknochnack/TFODCourse
 
+repo with software for frame labelling
+https://github.com/heartexlabs/label-studio
+
