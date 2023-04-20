@@ -1,2 +1,5 @@
 footage
 workspace/collected_images
+yolov5
+yolov5m.pt
+workspace/datasets
