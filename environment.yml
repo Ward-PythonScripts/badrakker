@@ -1,0 +1,7 @@
+name: computer_vision
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+  - ipykernel
+prefix: /home/markel/anaconda3/envs/computer_vision

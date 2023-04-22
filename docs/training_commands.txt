@@ -13,5 +13,9 @@ python train.py --epochs 100 --batch-size 3 --data custom-database.yml --weights
 
 python train.py --epochs 300 --batch-size 16 --img 640 --data custom-database.yml --workers 2 --weights yolov5m.pt
 #Crashed
+python train.py --epochs 300 --batch-size 10 --img 640 --data custom-database.yml --workers 2 --weights yolov5m.pt  
+#Worked
+however, shuttle still not recognized often enough. Did quite well with the training data though, maybe should receive more
+images with shuttles, also background images are recommended
 
 
