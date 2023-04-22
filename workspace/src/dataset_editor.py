@@ -5,7 +5,7 @@ from tkinter import ttk
 from tkinter import filedialog,messagebox
 from PIL import Image,ImageTk
 import os
-from shutil import copyfile
+from shutil import copyfile,rmtree
 import json
 
 
@@ -225,12 +225,12 @@ class DatasetEditorGUI:
 
 
 def start_conversion(from_dir,to_dir,to_merge,merge_into):
-    #os.mkdir(to_dir)
+    os.mkdir(to_dir)
 
     image_path_new = os.path.join(to_dir,"images")
-    #os.mkdir(image_path_new)
+    os.mkdir(image_path_new)
     label_path_new = os.path.join(to_dir,"labels")
-    #os.mkdir(label_path_new)
+    os.mkdir(label_path_new)
 
     image_path_old = os.path.join(from_dir,"images")
     images = [f for f in os.listdir(image_path_old) if os.path.isfile(os.path.join(image_path_old, f))]
@@ -283,25 +283,29 @@ def start_conversion(from_dir,to_dir,to_merge,merge_into):
                 current_id += 1
 
 
-            print(cat)
-        exit()
-
-
-
     #check if the same amount of images as labels
     if len(images) != len(labels):
         messagebox.showerror("Bad original dataset","Couldn't make a new dataset because there aren't the same amount of images and labels in the old datset")
         return
     for image in images:
         identifier = os.path.splitext(image)[0]
-        label_file = os.path.join(identifier,".txt")
-        copyfile(os.path.join(image_path_old,image),os.path.join(image_path_new))
+        label_file = identifier + ".txt"
+        copyfile(os.path.join(image_path_old,image),os.path.join(image_path_new,image))
 
         #write to label file
         file_write = open(os.path.join(label_path_new,label_file),"w+")
         with open(os.path.join(labels_path_old,label_file),"r") as file_read:
             for line in file_read:
-                line_lst = line.split("")
+                line_lst = line.split(" ",1)
+                id_orig = line_lst[0]
+                id_new = get_to_from_id_map(id_map,id_orig)
+                if id_new == -1:
+                    raise Exception("new id returned -1, shouldn't")
+                new_line = str(id_new) + " " + line_lst[1]
+
+                file_write.write(new_line)
+        file_write.close()
+        file_read.close()
             
 
 
@@ -317,6 +321,15 @@ def get_1d_index_in_2d(lst,search_term):
         if search_term in lst[i]:
             return i
     return -1
+
+
+def get_to_from_id_map(id_map,from_id):
+    remaps = id_map['remapping']
+    for remap in remaps:
+        if remap['from'] == int(from_id):
+            return remap['to']
+    return -1
+
     
 
 
@@ -334,4 +347,8 @@ def input_text_to_list(txt):
 
 if __name__ == "__main__":
     #DatasetEditorGUI().start_gui()
+    try:
+        rmtree("/home/markel/gitrepos/badrakker/workspace/datasets/markel")
+    except Exception:
+        pass
     start_conversion("/home/markel/gitrepos/badrakker/workspace/datasets/badrakker_1","/home/markel/gitrepos/badrakker/workspace/datasets/markel",[['PlayerMale','PlayerFemale']],['Player'])
