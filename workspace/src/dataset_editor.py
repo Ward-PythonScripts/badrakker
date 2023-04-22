@@ -1,6 +1,7 @@
 #python module that lets you edit datasets
 #e.g. There is a PlayerMale and PlayerFemale label that should be trained as player by the detection model -> make both of them Player
 import tkinter as tk
+from tkinter import ttk
 from tkinter import filedialog
 from PIL import Image,ImageTk
 import os
@@ -39,13 +40,29 @@ class DatasetEditorGUI:
     
     def create_main_window(self):
         # Create the main window
-        window = tk.Tk()
-        window.title("Dataset Editor")
+        root = tk.Tk()
+        root.geometry("400x800")
+        root.title("Dataset Editor")
 
-        # Create a title label
-        title_label = tk.Label(window, text="Dataset Editor", font=FONT_TITLE)
-        title_label.pack(pady=10)
-        return window
+        # Create a Canvas widget
+        canvas = tk.Canvas(root)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Create a Scrollbar widget
+        scrollbar = ttk.Scrollbar(root, orient=tk.VERTICAL, command=canvas.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Configure the Canvas widget to use the Scrollbar
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.bind('<Configure>', lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+
+        # Create a Frame inside the Canvas to hold the content
+        frame = ttk.Frame(canvas)
+        canvas.create_window((0, 0), window=frame, anchor='nw')
+
+        frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox('all')))
+
+        return frame
     
     def create_files_in_out(self,window):
         ##in
