@@ -363,12 +363,15 @@ def input_text_to_list(txt):
         if item != '':
             li.append(item)
     return li
-    
 
-if __name__ == "__main__":
-    #DatasetEditorGUI().start_gui()
+def test():
     try:
         rmtree("/home/markel/gitrepos/badrakker/workspace/datasets/markel")
     except Exception:
         pass
     start_conversion("/home/markel/gitrepos/badrakker/workspace/datasets/badrakker_1","/home/markel/gitrepos/badrakker/workspace/datasets/markel",[['PlayerMale','PlayerFemale']],['Player'])
+
+    
+
+if __name__ == "__main__":
+    DatasetEditorGUI().start_gui()
