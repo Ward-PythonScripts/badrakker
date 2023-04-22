@@ -5,6 +5,8 @@ from tkinter import ttk
 from tkinter import filedialog,messagebox
 from PIL import Image,ImageTk
 import os
+from shutil import copyfile
+import json
 
 
 FONT_TEXT = ("Helvetica",12)
@@ -161,6 +163,8 @@ class DatasetEditorGUI:
         for tv in self.to_merge_tf:
             text = tv.get(1.0,tk.END)
             merge_from.append(input_text_to_list(text))
+
+        ERROR_TITLE = "Can't start the conversion"
         
         if self.from_dir:
             if self.to_dir:
@@ -168,13 +172,13 @@ class DatasetEditorGUI:
                     if len(merge_from) > 0:
                         start_conversion(from_dir=self.from_dir,to_dir=self.to_dir,to_merge=merge_from,merge_into=merge_into)
                     else:
-                        cant_start_conversion_error("Merge from was empty")
+                        messagebox.showerror(ERROR_TITLE,"Merge from was empty")
                 else:
-                    cant_start_conversion_error("Merge into was empty")
+                    messagebox.showerror(ERROR_TITLE,"Merge into was empty")
             else:
-                cant_start_conversion_error("To directory was empty")
+                messagebox.showerror(ERROR_TITLE,"To directory was empty")
         else:
-            cant_start_conversion_error("From directory was empty")
+            messagebox.showerror(ERROR_TITLE,"From directory was empty")
 
         
 
@@ -221,26 +225,100 @@ class DatasetEditorGUI:
 
 
 def start_conversion(from_dir,to_dir,to_merge,merge_into):
-    os.mkdir(to_dir)
+    #os.mkdir(to_dir)
 
     image_path_new = os.path.join(to_dir,"images")
-    os.mkdir(image_path_new)
+    #os.mkdir(image_path_new)
     label_path_new = os.path.join(to_dir,"labels")
-    os.mkdir(label_path_new)
+    #os.mkdir(label_path_new)
 
     image_path_old = os.path.join(from_dir,"images")
     images = [f for f in os.listdir(image_path_old) if os.path.isfile(os.path.join(image_path_old, f))]
     labels_path_old = os.path.join(from_dir,"labels")
     labels = [f for f in os.listdir(labels_path_old) if os.path.isfile(os.path.join(labels_path_old, f))]
 
+    #get id map
+    with open(os.path.join(from_dir,'notes.json')) as json_f:
+        data = json.load(json_f)
+        categories = (data['categories'])
+        cat_list = []
+        id_map = {
+            'categories':[],
+            'remapping':[]
+        }
+        current_id = 0
+
+        for cat in categories:
+            if get_1d_index_in_2d(to_merge,cat['name']) != -1:
+                #this is one that we need to merge-> write down in map what key it should get
+                #first get to merge index
+                merge_into_value = merge_into[get_1d_index_in_2d(to_merge,cat['name'])]
+                was_id = current_id
+                target_index = index_of_value_for_key_in_list(id_map["categories"],merge_into_value,'name')
+                if target_index  == -1:
+                    id_map["categories"].append({
+                        'id':current_id,
+                        'name':merge_into_value
+                    })
+                    current_id += 1
+                else:
+                    was_id = id_map["categories"][target_index]['id']
+                    
+                #then tell it the new position
+                id_map['remapping'].append({
+                    'from':cat['id'],
+                    'to':was_id
+                })
+                        
+
+            else:
+                id_map['categories'].append({
+                    'id':current_id,
+                    'name':cat['name']
+                })
+                id_map["remapping"].append({
+                    'from':cat['id'],
+                    'to':current_id
+                })
+                current_id += 1
+
+
+            print(cat)
+        exit()
+
+
+
     #check if the same amount of images as labels
     if len(images) != len(labels):
         messagebox.showerror("Bad original dataset","Couldn't make a new dataset because there aren't the same amount of images and labels in the old datset")
         return
+    for image in images:
+        identifier = os.path.splitext(image)[0]
+        label_file = os.path.join(identifier,".txt")
+        copyfile(os.path.join(image_path_old,image),os.path.join(image_path_new))
+
+        #write to label file
+        file_write = open(os.path.join(label_path_new,label_file),"w+")
+        with open(os.path.join(labels_path_old,label_file),"r") as file_read:
+            for line in file_read:
+                line_lst = line.split("")
+            
+
+
+def index_of_value_for_key_in_list(lst,value,key):
+    for i in range(0,len(lst)):
+        if lst[i][key] == value:
+            return i
+    return -1
+
+
+def get_1d_index_in_2d(lst,search_term):
+    for i in range(0,len(lst)):
+        if search_term in lst[i]:
+            return i
+    return -1
     
 
-def cant_start_conversion_error(text):
-    messagebox.showerror("Can't start the conversion",text)
 
 
 def input_text_to_list(txt):
@@ -255,4 +333,5 @@ def input_text_to_list(txt):
     
 
 if __name__ == "__main__":
-    DatasetEditorGUI().start_gui()
+    #DatasetEditorGUI().start_gui()
+    start_conversion("/home/markel/gitrepos/badrakker/workspace/datasets/badrakker_1","/home/markel/gitrepos/badrakker/workspace/datasets/markel",[['PlayerMale','PlayerFemale']],['Player'])
