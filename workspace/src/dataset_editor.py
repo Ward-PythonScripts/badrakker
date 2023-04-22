@@ -2,7 +2,7 @@
 #e.g. There is a PlayerMale and PlayerFemale label that should be trained as player by the detection model -> make both of them Player
 import tkinter as tk
 from tkinter import ttk
-from tkinter import filedialog
+from tkinter import filedialog,messagebox
 from PIL import Image,ImageTk
 import os
 
@@ -18,6 +18,10 @@ class DatasetEditorGUI:
         #inits
         self.init_images()
         self.init_merge_lists()
+        self.files_in_set = False
+        self.files_out_set = False
+        self.from_dir = None
+        self.to_dir = None
 
     
     def start_gui(self):
@@ -130,7 +134,7 @@ class DatasetEditorGUI:
         right_label.pack()
 
         # Create a text box for the right zone
-        right_textbox = tk.Text(right_frame, height=10, width=20)
+        right_textbox = tk.Entry(right_frame)
         right_textbox.pack(pady=10)
         self.merge_into_tf.append(right_textbox)
 
@@ -139,9 +143,7 @@ class DatasetEditorGUI:
         merge_button.pack(pady=10)
 
     def craete_edit_button(self,window):
-
-        # Create an "Edit Dataset" button
-        edit_button = tk.Button(window, text="Edit Dataset", font=FONT_SUBTITLE, command=lambda:self.edit_dataset)
+        edit_button = tk.Button(window, text="Edit Dataset", font=FONT_SUBTITLE, command=lambda:self.edit_dataset())
         edit_button.pack(pady=10)
     
     def add_merge_option(self):
@@ -149,8 +151,32 @@ class DatasetEditorGUI:
         
     
     def edit_dataset(self):
-        # Function to handle the "Edit Dataset" button click event
-        pass  # Add your implementation here
+        merge_into = []
+        for tv in self.merge_into_tf:
+            text = tv.get()
+            text.replace(" ","_")
+            text.replace("\t","_")
+            merge_into.append(text)
+        merge_from = []
+        for tv in self.to_merge_tf:
+            text = tv.get(1.0,tk.END)
+            merge_from.append(input_text_to_list(text))
+        
+        if self.from_dir:
+            if self.to_dir:
+                if len(merge_into) > 0:
+                    if len(merge_from) > 0:
+                        start_conversion(from_dir=self.from_dir,to_dir=self.to_dir,to_merge=merge_from,merge_into=merge_into)
+                    else:
+                        cant_start_conversion_error("Merge from was empty")
+                else:
+                    cant_start_conversion_error("Merge into was empty")
+            else:
+                cant_start_conversion_error("To directory was empty")
+        else:
+            cant_start_conversion_error("From directory was empty")
+
+        
 
     def input_database_received(self,was_correctly):
         if was_correctly:
@@ -177,7 +203,9 @@ class DatasetEditorGUI:
             old_database_location = filedialog.askdirectory(title="Old dataset",initialdir="workspace/datasets")
             if old_database_location:
                 to_check = ["images","labels","classes.txt"]
-                self.input_database_received(self.check_if_folder_contains_all(old_database_location,to_check))  
+                if self.check_if_folder_contains_all(old_database_location,to_check):
+                    self.input_database_received(True)
+                    self.from_dir = old_database_location  
             else:
                 self.input_database_received(False)
     
@@ -185,9 +213,46 @@ class DatasetEditorGUI:
             #need to create a new folder at requested location
             storage_location = filedialog.askdirectory(title="Where to save the new dataset?",initialdir="workspace/datasets")
             if storage_location:
-                self.output_dataset_reveiced(not os.path.exists(storage_location))   
+                if not os.path.exists(storage_location):
+                    self.output_dataset_reveiced(True)
+                    self.to_dir = storage_location   
             else:   
                 self.output_dataset_reveiced(False)
+
+
+def start_conversion(from_dir,to_dir,to_merge,merge_into):
+    os.mkdir(to_dir)
+
+    image_path_new = os.path.join(to_dir,"images")
+    os.mkdir(image_path_new)
+    label_path_new = os.path.join(to_dir,"labels")
+    os.mkdir(label_path_new)
+
+    image_path_old = os.path.join(from_dir,"images")
+    images = [f for f in os.listdir(image_path_old) if os.path.isfile(os.path.join(image_path_old, f))]
+    labels_path_old = os.path.join(from_dir,"labels")
+    labels = [f for f in os.listdir(labels_path_old) if os.path.isfile(os.path.join(labels_path_old, f))]
+
+    #check if the same amount of images as labels
+    if len(images) != len(labels):
+        messagebox.showerror("Bad original dataset","Couldn't make a new dataset because there aren't the same amount of images and labels in the old datset")
+        return
+    
+
+def cant_start_conversion_error(text):
+    messagebox.showerror("Can't start the conversion",text)
+
+
+def input_text_to_list(txt):
+    li = []
+    l = txt.split('\n')
+    for item in l:
+        item = item.replace(" ","_")
+        item = item.replace("\t","_")
+        if item != '':
+            li.append(item)
+    return li
+    
 
 if __name__ == "__main__":
     DatasetEditorGUI().start_gui()
