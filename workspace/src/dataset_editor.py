@@ -16,18 +16,26 @@ class DatasetEditorGUI:
         self.window = self.create_main_window()
         #inits
         self.init_images()
-        self.start_gui()
+        self.init_merge_lists()
+
     
     def start_gui(self):
         self.create_files_in_out(window=self.window)
+        self.create_all_merges_frame(self.window)
         self.create_merges(self.window)
+        self.create_add_merge_button(self.window)
         self.craete_edit_button(self.window)
         self.window.mainloop()
+
+    def init_merge_lists(self):
+        self.to_merge_tf = []
+        self.merge_into_tf = []
 
     def init_images(self):
         self.search_img = ImageTk.PhotoImage(Image.open("workspace/src/img/search.png"),master=self.window)
         self.done_img = ImageTk.PhotoImage(Image.open("workspace/src/img/done.png"),master=self.window)
         self.warning_img = ImageTk.PhotoImage(Image.open("workspace/src/img/warning.png"),master=self.window)
+        self.add_img = ImageTk.PhotoImage(Image.open("workspace/src/img/add.png"),master=self.window)
     
     def create_main_window(self):
         # Create the main window
@@ -45,20 +53,26 @@ class DatasetEditorGUI:
         files_in_frame.pack(pady=10)
         files_label = tk.Label(files_in_frame,text="Folder of old dataset",font=FONT_SUBTITLE)
         files_label.pack(side=tk.LEFT,padx=10)
-        files_in_button = tk.Button(files_in_frame,image=self.search_img,command=self.get_file(True))
+        files_in_button = tk.Button(files_in_frame,image=self.search_img,command=lambda:self.get_file(True))
         files_in_button.pack(side=tk.LEFT,padx=10)
+        self.files_in_button = files_in_button
         ##out
         files_out_frame = tk.Frame(window)
         files_out_frame.pack(pady=10)
         files_out_labe = tk.Label(files_out_frame,text="Folder of new dataset",font=FONT_SUBTITLE)
         files_out_labe.pack(side=tk.LEFT,padx=10)
-        files_out_button = tk.Button(files_out_frame,image=self.search_img,command=self.get_file(False))
+        files_out_button = tk.Button(files_out_frame,image=self.search_img,command=lambda:self.get_file(False))
         files_out_button.pack(side=tk.LEFT,padx=10)
+        self.files_out_button = files_out_button
+    
+    def create_all_merges_frame(self,window):
+        all_merge_frame = tk.Frame(window)
+        all_merge_frame.pack(pady=10)
+        self.all_merge_frame = all_merge_frame
 
-
-    def create_merges(self,window):
+    def create_merges(self,all_merge_frame):
         #create frame for merges
-        merge_frame = tk.Frame(window)
+        merge_frame = tk.Frame(all_merge_frame)
         merge_frame.pack(pady=10)
 
         # Create a subtitle label
@@ -76,6 +90,7 @@ class DatasetEditorGUI:
         # Create a text box for the left zone
         left_textbox = tk.Text(left_frame, height=10, width=20)
         left_textbox.pack(pady=10)
+        self.to_merge_tf.append(left_textbox)
 
         # Create a frame to hold the middle zone
         middle_frame = tk.Frame(merge_frame)
@@ -100,33 +115,62 @@ class DatasetEditorGUI:
         # Create a text box for the right zone
         right_textbox = tk.Text(right_frame, height=10, width=20)
         right_textbox.pack(pady=10)
+        self.merge_into_tf.append(right_textbox)
+
+    def create_add_merge_button(self,window):
+        merge_button = tk.Button(window,image=self.add_img,command=lambda:self.add_merge_option())
+        merge_button.pack(pady=10)
 
     def craete_edit_button(self,window):
 
         # Create an "Edit Dataset" button
-        edit_button = tk.Button(window, text="Edit Dataset", font=FONT_SUBTITLE, command=self.edit_dataset)
+        edit_button = tk.Button(window, text="Edit Dataset", font=FONT_SUBTITLE, command=lambda:self.edit_dataset)
         edit_button.pack(pady=10)
     
+    def add_merge_option(self):
+        self.create_merges(self.all_merge_frame)
+        
     
     def edit_dataset(self):
         # Function to handle the "Edit Dataset" button click event
         pass  # Add your implementation here
 
+    def input_database_received(self,was_correctly):
+        if was_correctly:
+            self.files_in_button.config(image=self.done_img)
+        else:
+            self.files_in_button.config(image=self.warning_img)
+    def output_dataset_reveiced(self,was_correctly):
+        if was_correctly:
+            self.files_out_button.config(image=self.done_img)
+        else:
+            self.files_out_button.config(image=self.warning_img)
+
+
+    def check_if_folder_contains_all(self,parent_dir,to_check):
+        for check in to_check:
+            if not os.path.exists(os.path.join(parent_dir,check)):
+                return False
+        return True
+
+
     def get_file(self,folder_is_in):
-        print("getfile called")
-        return None
         if folder_is_in:
             #just need to load this folder
             old_database_location = filedialog.askdirectory(title="Old dataset",initialdir="workspace/datasets")
-
-            
+            if old_database_location:
+                to_check = ["images","labels","classes.txt"]
+                self.input_database_received(self.check_if_folder_contains_all(old_database_location,to_check))  
+            else:
+                self.input_database_received(False)
+    
         else:
             #need to create a new folder at requested location
             storage_location = filedialog.askdirectory(title="Where to save the new dataset?",initialdir="workspace/datasets")
-
-        
-
-
+            if storage_location:
+                self.output_dataset_reveiced(not os.path.exists(storage_location))   
+            else:   
+                self.output_dataset_reveiced(False)
 
 if __name__ == "__main__":
-    DatasetEditorGUI()
+    DatasetEditorGUI().start_gui()
