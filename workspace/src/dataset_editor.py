@@ -306,6 +306,26 @@ def start_conversion(from_dir,to_dir,to_merge,merge_into):
                 file_write.write(new_line)
         file_write.close()
         file_read.close()
+
+    #create classes.txt, just the classes from high id to low id
+    categories = id_map["categories"]
+    names = [None] * len(categories)
+    for cat in categories:
+        names[cat['id']] = cat['name']
+    classes_write = open(os.path.join(to_dir,"classes.txt"),"w+")
+    for i in range(0,len(names)):
+        classes_write.write(names[i]+"\n")
+    classes_write.close()
+
+    #create notes.json
+    with open(os.path.join(to_dir,"notes.json"),"w+") as json_write:
+        json.dump({
+            "categories":id_map["categories"],
+            "info":data["info"]
+        },json_write)
+    json_write.close()
+
+
             
 
 
