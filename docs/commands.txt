@@ -1,4 +1,0 @@
-to train:
-python train.py --epochs 100 --data custom-database.yml --weights yolov5m.pt
-
-python train.py --epochs 100 --batch-size 3 --data custom-database.yml --weights yolov5m.pt

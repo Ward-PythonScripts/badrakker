@@ -9,7 +9,7 @@ model = torch.hub.load('ultralytics/yolov5', 'custom', path='workspace/yolov5/ru
 
 cap = cv2.VideoCapture('footage/compilation_1.mp4')
 
-skip_first_frames = 500 
+skip_first_frames = 2000 
 cap.set(1,skip_first_frames)
 
 while cap.isOpened():

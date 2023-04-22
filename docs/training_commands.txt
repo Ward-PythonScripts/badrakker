@@ -1,0 +1,17 @@
+GENERAL COMMENTS
+Use many batches, 3 is very little and could negatively affect the training of the data
+images at a resolution of 1260 is pretty much impossible, way too much ram needed. 16+2 of this laptop wasn't enough
+
+
+to train:
+python train.py --epochs 100 --data custom-database.yml --weights yolov5m.pt
+
+python train.py --epochs 100 --batch-size 3 --data custom-database.yml --weights yolov5m.pt
+"din't overfit -> go for more epochts maybe 300"
+"batch-size should be as big as possible"
+"image should be set to 1280, maybe it can recognize the shuttle easier then"
+
+python train.py --epochs 300 --batch-size 16 --img 640 --data custom-database.yml --workers 2 --weights yolov5m.pt
+#Crashed
+
+
