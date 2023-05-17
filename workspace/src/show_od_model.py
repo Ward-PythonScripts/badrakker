@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 
 
-model = torch.hub.load('ultralytics/yolov5', 'custom', path='workspace/yolov5/runs/train/exp27/weights/last.pt')#, force_reload=True)
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='workspace/yolov5/runs/train/exp5/weights/last.pt')#, force_reload=True)
 
 cap = cv2.VideoCapture('footage/compilation_1.mp4')
 
